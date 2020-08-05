@@ -39,8 +39,7 @@ def index(request):
 @api_view(['POST'])
 def registerVerify(request):
         if request.method == "POST":
-            print(request.data)
-            print(request.data.get('phoneNumber'))
+            
             phone = request.data.get('phoneNumber')
             email = request.data.get('email')
             data = {}
@@ -81,7 +80,7 @@ def registerVerify(request):
 @api_view(['POST', 'GET'])
 def register(request,format=None):
     if request.method == "POST":
-        print(request.data)
+        
         # if OTP from local dictionary matches with otp entered in form then save user
         if otp[request.data.get('phoneNumber')] == int(request.data.get('otp')) and otp[request.data.get('email')] == int(request.data.get('emailotp')):
             
@@ -141,8 +140,7 @@ def validateContact(request):
             phone = request.data.get('phoneNumber')
             data = {}
             user = Account.objects.filter(phoneNumber = phone)  # check if user exists
-            print('@@@@')
-            print(user)
+
             if user.exists():               #if exists genetrate OTP
                 key = generateOTP(phone)
                 global otp
