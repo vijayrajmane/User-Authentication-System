@@ -1,0 +1,115 @@
+{% extends 'user/base.html'%}
+{% block content%}
+
+
+{% if request.user.is_authenticated%}
+
+<h1>Logged in Successfully !!</h1>
+<a class="btn btn-primary" href="/logout/">Logout</a>
+
+{% for detail in details %}
+
+<ul class="m-5">
+    <h4>Account Details</h4>
+    <hr>
+    <li>Name: {{detail.name}}</li>
+    <li>Email Address: {{detail.email}}</li>
+    <li>Contact Number: {{detail.phoneNumber}}</li>
+</ul>
+{% endfor %}
+{% else %}
+<h3>Login</h3>
+<form id="loginForm" method="POST">{% csrf_token %}
+    <div id="contact" class="form-group">
+        <label for="exampleInputEmail1">Contact No.</label>
+        <input type="text" class="form-control" id="exampleInputEmail1" name="phoneNumber"><br>
+        <button id="loginSubmit" type="submit" class="btn btn-primary">Send OTP</button>
+    </div>
+    <div id="SuccessAlert" class="alert alert-success" role="alert" style="display: none;">
+        OTP Send !!
+    </div>
+    <div id="FailAlert" class="alert alert-danger" role="alert" style="display: none;">
+        Fail to send OTP
+    </div>
+</form>
+
+
+<form id="otpForm" style="display: none;">{% csrf_token %}
+    <div class="form-group">
+        <label for="exampleInputEmail1">Enter OTP</label>
+        <input  name="otp"><br>
+
+    </div>
+    <button id="otpSubmit" type="submit" class="btn btn-primary">Submit</button>
+</form>
+<p>Not Register yet ? <a href="/register">Register</a></p>
+{% endif %}
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (document.querySelector('#loginForm')) {
+
+            // On submitting phone Number
+            document.querySelector('#loginForm').onsubmit = () => {
+
+                //document.querySelector('#loginForm').style.display = 'none'
+                document.querySelector('#loginSubmit').disabled = true;
+                let request = new XMLHttpRequest();
+
+                let loginForm = document.querySelector('#loginForm');
+                var x = loginForm.phoneNumber.value;
+                console.log(x)
+                let data = new FormData(loginForm);         // send phone number to generate otp w.r.t it
+                request.open('POST', "/api/validate/");
+                request.send(data)
+                request.onload = () => {
+                    let data = JSON.parse(request.responseText)
+                    if (data.response === 'success') {      // On creatig otp successfully
+                        document.querySelector('#SuccessAlert').style.display = '';
+                        document.querySelector('#otpForm').style.display = '';  // make input box visible
+
+                    }
+                    if (data.response === 'fail') {
+                        document.querySelector('#FailAlert').style.display = '';
+                    }
+                }
+                return false
+            }
+
+        }
+
+    });
+</script>
+<script>
+    if (document.querySelector('#otpForm')) {
+        // On submitting otp
+        document.querySelector('#otpForm').onsubmit = () => {
+
+            let request2 = new XMLHttpRequest();
+
+            let otpForm = document.querySelector('#otpForm');
+            var y = otpForm.otp.value;
+            let loginForm = document.querySelector('#loginForm');
+            var x = loginForm.phoneNumber.value;
+
+            let data = new FormData();
+            data.append('otp', y)           //send entered otp and phone number to cross check with actual otp
+            data.append('phoneNumber', x)
+
+            request2.open('POST', "/api/signin/");
+            request2.send(data)
+            request2.onload = () => {
+                let data = JSON.parse(request2.responseText)
+                if(data.response === 'success'){ // if otp matches reload page 
+                    alert(data.response)
+                    location.reload()
+                }
+            }
+            return false;
+        }
+
+    }
+</script>
+{% endblock %}

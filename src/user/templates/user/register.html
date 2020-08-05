@@ -1,0 +1,110 @@
+{% extends 'user/base.html' %}
+
+{% block content %}
+<h3>Register</h3>
+<form id="registerForm" action="POST">{% csrf_token %}
+    <div class="form-group">
+        <label for="exampleInputEmail1">Name</label>
+        <input type="text" class="form-control" id="exampleInputEmail1" name="name">
+    </div>
+    <div class="form-group">
+        <label for="exampleInputEmail1">Phone Number</label>
+        <input class="form-control" id="exampleInputEmail1" name="phoneNumber"><br>
+    </div>
+
+    <div class="form-group">
+        <label for="exampleInputEmail1">Email address</label>
+        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" name="email">
+        <small id="emailHelp" class="form-text text-muted">Check Email for verification.</small>
+    </div>
+    <button type="submit" class="btn btn-primary">SignUp</button>
+</form>
+
+<br>
+<form id="otpForm" action="POST" style="display: none;">{% csrf_token %}
+
+    <div class="form-group">
+        <label for="exampleInputEmail1">Enter OTP</label>
+        <input name="otp">
+        <small>Check your mobile message for OTP</small>
+    </div>
+    <div class="form-group">
+        <label for="exampleInputEmail1">Enter Email OTP</label>
+        <input name="emailotp">
+        <small>Check your Email for OTP</small>
+    </div>
+
+    <button id="sendOTP" type="submit" class="btn btn-primary">Verify</button>
+</form>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+
+        if (document.querySelector('#registerForm')) {
+            // On submitting registerForm
+            document.querySelector('#registerForm').onsubmit = () => {
+                document.querySelector('#otpForm').style.display = '' // make otp input box visible
+                let request = new XMLHttpRequest();
+
+                let registerForm = document.querySelector('#registerForm');
+                var x = registerForm.phoneNumber.value;
+                let data = new FormData(registerForm);
+                //data.append('phoneNumber', x)
+                request.open('POST', "/api/registerVerify/");
+                request.send(data)                     // Send http request to server with form data to generate OTP
+                request.onload = () => {
+                    let data = JSON.parse(request.responseText)
+                    console.log(data)
+                    if (data.response === 'success') {
+                        console.log(data.response)
+                        // document.querySelector('#SuccessAlert').style.display = '';
+                        // document.querySelector('#otpForm').style.display = '';
+
+                    }
+                    if (data.response === 'fail') {
+                        console.log(data.message)
+                        //document.querySelector('#FailAlert').style.display = '';
+                    }
+                }
+                return false;
+            }
+
+        }
+
+        if (document.querySelector('#otpForm')) {
+            //On submitting OTP
+            document.querySelector('#otpForm').onsubmit = () => {
+
+
+                let registerForm = document.querySelector('#registerForm');
+                let otpForm = document.querySelector('#otpForm');
+                let y = otpForm.otp.value;
+                let z = otpForm.emailotp.value;
+                let request = new XMLHttpRequest();
+                let data = new FormData(registerForm);      //send user detail to save in database
+                data.append('otp', y);    
+                data.append('emailotp', z);                  // send otp to validate
+                request.open('POST', "/api/register/");
+                request.send(data)
+
+                request.onload = () => {
+                    let data = JSON.parse(request.responseText)
+                    console.log(data)
+                    if (data.response === 'success') {      //  if otp is valid and account is created successfully 
+                        
+                        window.location.replace("http://127.0.0.1:8000/");  // redirect
+                    }
+                    else {
+                        console.log('Enter all details')
+                    }
+                }
+                return false;
+                
+            }
+        }
+    });
+</script>
+{% endblock %}
